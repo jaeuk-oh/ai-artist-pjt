@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+.env
+
+# 학습 결과물
+outputs/
+*.bin
+*.safetensors
+*.gguf
+
+# 데이터 (raw/processed는 gitignore, datasets는 포함)
+data/raw/
+data/processed/
+
+# 평가 결과
+eval_results.json
+*.jsonl.bak
+
+# 로그
+*.log
+logs/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# macOS
+.DS_Store
+
+# WandB
+wandb/

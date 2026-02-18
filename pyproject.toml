@@ -1,0 +1,70 @@
+[project]
+name = "artistmind"
+version = "0.1.0"
+description = "K-Pop AI Persona Chatbot - Blue Garage LLM Engineer Portfolio"
+requires-python = ">=3.11"
+dependencies = [
+    # API
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.32.0",
+    "pydantic>=2.10.0",
+    # 로컬 LLM (EXAONE-3.5-2.4B-Instruct)
+    "torch>=2.5.0",
+    "transformers>=4.47.0",
+    "accelerate>=1.2.0",
+    "peft>=0.14.0",          # LoRA 어댑터 로드
+    # UI
+    "gradio>=5.9.0",
+    # Utilities
+    "python-dotenv>=1.0.0",
+    "pyyaml>=6.0.0",
+    "loguru>=0.7.0",
+    "httpx>=0.28.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3.0",
+    "pytest-asyncio>=0.25.0",
+    "ruff>=0.9.0",
+]
+# 데이터 생성 (Claude API 사용)
+data = [
+    "anthropic>=0.42.0",
+]
+# LoRA 파인튜닝 (GPU 권장, M1 가능)
+training = [
+    "datasets>=3.2.0",
+    "trl>=0.13.0",
+    "wandb>=0.19.0",
+    "bitsandbytes>=0.45.0",  # NVIDIA GPU 4-bit (M1은 미사용)
+]
+# Phase 2: 메모리/RAG 인프라
+memory = [
+    "redis>=5.2.0",
+    "chromadb>=0.6.0",
+    "sentence-transformers>=3.3.0",
+]
+# Phase 3: vLLM 서빙
+serving = [
+    "vllm>=0.6.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["api", "persona", "memory", "safety", "serving", "training", "evaluation", "ui"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+

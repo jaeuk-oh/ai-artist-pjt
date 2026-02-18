@@ -1,0 +1,44 @@
+model:
+  base_model: "LGAI-EXAONE/EXAONE-3.5-2.4B-Instruct"
+  # 대안: "LGAI-EXAONE/EXAONE-3.5-7.8B-Instruct" (품질 우선)
+  model_max_length: 2048
+  # M1 Mac: bitsandbytes 미지원 → float16 full LoRA 사용
+  # GPU 환경: load_in_4bit: true 로 변경 가능
+  load_in_4bit: false
+  torch_dtype: "float16"
+
+lora:
+  r: 16
+  lora_alpha: 32
+  lora_dropout: 0.05
+  target_modules:
+    - "q_proj"
+    - "k_proj"
+    - "v_proj"
+    - "o_proj"
+  bias: "none"
+  task_type: "CAUSAL_LM"
+
+training:
+  output_dir: "./outputs/yuri-lora"
+  num_train_epochs: 3
+  per_device_train_batch_size: 2   # M1 16GB: batch 2 권장
+  gradient_accumulation_steps: 8   # effective batch = 16
+  learning_rate: 2.0e-4
+  lr_scheduler_type: "cosine"
+  warmup_ratio: 0.05
+  weight_decay: 0.01
+  fp16: true
+  logging_steps: 10
+  save_steps: 100
+  eval_steps: 100
+  save_total_limit: 2
+  report_to: "wandb"
+
+data:
+  train_file: "./data/datasets/persona/train.jsonl"
+  eval_file: "./data/datasets/persona/eval.jsonl"
+
+wandb:
+  project: "artistmind-yuri"
+  run_name: "exaone-2.4b-lora"
