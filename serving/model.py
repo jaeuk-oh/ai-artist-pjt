@@ -11,10 +11,17 @@ LoRA 어댑터: LORA_PATH 환경변수로 지정 (파인튜닝 후 적용)
 
 import os
 import torch
+from dotenv import load_dotenv
+from huggingface_hub import login
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from loguru import logger
 
+load_dotenv()
+if hf_token := os.getenv("HF_TOKEN"):
+    login(token=hf_token)
+
 MODEL_ID = os.getenv("MODEL_ID", "LGAI-EXAONE/EXAONE-3.5-2.4B-Instruct")
+MODEL_REVISION = "e949c91dec92095908d34e6b560af77dd0c993f8"  # transformers <5.0 호환 마지막 커밋
 LORA_PATH = os.getenv("LORA_PATH", "")  # 파인튜닝된 LoRA 어댑터 경로 (없으면 base 모델 사용)
 
 _model = None
@@ -40,10 +47,12 @@ def load() -> None:
 
     logger.info(f"Loading {MODEL_ID} on {device} ({dtype})...")
 
-    _tokenizer = AutoTokenizer.from_pretrained(MODEL_ID)
+    _tokenizer = AutoTokenizer.from_pretrained(MODEL_ID, trust_remote_code=True, revision=MODEL_REVISION)
     _model = AutoModelForCausalLM.from_pretrained(
         MODEL_ID,
-        torch_dtype=dtype,
+        torch_dtype="auto",
+        trust_remote_code=True,
+        revision=MODEL_REVISION,
     ).to(device)
 
     # LoRA 어댑터 적용 (파인튜닝 결과물)

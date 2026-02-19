@@ -1,11 +1,13 @@
 model:
   base_model: "LGAI-EXAONE/EXAONE-3.5-2.4B-Instruct"
+  revision: "e949c91dec92095908d34e6b560af77dd0c993f8"  # transformers <5.0 호환 마지막 커밋
   # 대안: "LGAI-EXAONE/EXAONE-3.5-7.8B-Instruct" (품질 우선)
   model_max_length: 2048
   # M1 Mac: bitsandbytes 미지원 → float16 full LoRA 사용
   # GPU 환경: load_in_4bit: true 로 변경 가능
   load_in_4bit: false
   torch_dtype: "float16"
+  device: "cpu"  # M1 Mac: LoRA 학습은 CPU 사용 (MPS는 9GB 버퍼 할당 실패)
 
 lora:
   r: 16
@@ -28,7 +30,7 @@ training:
   lr_scheduler_type: "cosine"
   warmup_ratio: 0.05
   weight_decay: 0.01
-  fp16: true
+  fp16: false  # CPU는 fp16 학습 미지원
   logging_steps: 10
   save_steps: 100
   eval_steps: 100

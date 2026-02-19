@@ -10,7 +10,7 @@ dependencies = [
     "pydantic>=2.10.0",
     # 로컬 LLM (EXAONE-3.5-2.4B-Instruct)
     "torch>=2.5.0",
-    "transformers>=4.47.0",
+    "transformers>=4.47.0,<5.0.0",  # EXAONE revision e949c91d 호환 범위
     "accelerate>=1.2.0",
     "peft>=0.14.0",          # LoRA 어댑터 로드
     # UI

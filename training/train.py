@@ -8,17 +8,21 @@
     NVIDIA  → config.yaml: load_in_4bit: true  (bitsandbytes 4bit)
 """
 
+import os
 import yaml
 import torch
 from pathlib import Path
 from dotenv import load_dotenv
+from huggingface_hub import login
 from datasets import load_dataset
 from peft import LoraConfig, get_peft_model, TaskType
-from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments
-from trl import SFTTrainer
+from transformers import AutoModelForCausalLM, AutoTokenizer
+from trl import SFTTrainer, SFTConfig
 import wandb
 
 load_dotenv()
+if hf_token := os.getenv("HF_TOKEN"):
+    login(token=hf_token)
 
 
 def load_config(path: str = "training/config.yaml") -> dict:
@@ -42,9 +46,11 @@ def main():
     dtype = getattr(torch, cfg["model"]["torch_dtype"])
 
     # 모델 로드
-    tokenizer = AutoTokenizer.from_pretrained(model_id)
+    revision = cfg["model"].get("revision")
+    tokenizer = AutoTokenizer.from_pretrained(model_id, trust_remote_code=True, revision=revision)
+    tokenizer.model_max_length = cfg["model"]["model_max_length"]
 
-    load_kwargs = {"torch_dtype": dtype}
+    load_kwargs = {"torch_dtype": "auto", "trust_remote_code": True, "revision": revision}
     if cfg["model"].get("load_in_4bit"):
         from transformers import BitsAndBytesConfig
         load_kwargs["quantization_config"] = BitsAndBytesConfig(
@@ -55,8 +61,8 @@ def main():
         )
         load_kwargs["device_map"] = "auto"
     else:
-        # M1 Mac: MPS 또는 CPU
-        device = "mps" if torch.backends.mps.is_available() else "cpu"
+        # config에 명시된 device 우선, 없으면 자동 감지
+        device = cfg["model"].get("device") or ("mps" if torch.backends.mps.is_available() else "cpu")
         load_kwargs["device_map"] = device
 
     model = AutoModelForCausalLM.from_pretrained(model_id, **load_kwargs)
@@ -87,13 +93,12 @@ def main():
     t = cfg["training"]
     trainer = SFTTrainer(
         model=model,
-        tokenizer=tokenizer,
+        processing_class=tokenizer,
         train_dataset=dataset["train"],
         eval_dataset=dataset["eval"],
-        dataset_text_field="text",
-        max_seq_length=cfg["model"]["model_max_length"],
-        args=TrainingArguments(
+        args=SFTConfig(
             output_dir=t["output_dir"],
+            dataset_text_field="text",
             num_train_epochs=t["num_train_epochs"],
             per_device_train_batch_size=t["per_device_train_batch_size"],
             gradient_accumulation_steps=t["gradient_accumulation_steps"],
@@ -107,7 +112,7 @@ def main():
             eval_steps=t["eval_steps"],
             save_total_limit=t["save_total_limit"],
             report_to=t["report_to"],
-            evaluation_strategy="steps",
+            eval_strategy="steps",
         ),
     )
 
