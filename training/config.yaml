@@ -36,8 +36,8 @@ training:
   report_to: "wandb"
 
 data:
-  train_file: "./data/datasets/persona/train.jsonl"
-  eval_file: "./data/datasets/persona/eval.jsonl"
+  train_file: "./data/datasets/train.jsonl"   # persona + worldview + safety 합본
+  eval_file: "./data/datasets/eval.jsonl"
 
 wandb:
   project: "artistmind-yuri"

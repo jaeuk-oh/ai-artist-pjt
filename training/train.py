@@ -11,11 +11,14 @@
 import yaml
 import torch
 from pathlib import Path
+from dotenv import load_dotenv
 from datasets import load_dataset
 from peft import LoraConfig, get_peft_model, TaskType
 from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments
 from trl import SFTTrainer
 import wandb
+
+load_dotenv()
 
 
 def load_config(path: str = "training/config.yaml") -> dict:

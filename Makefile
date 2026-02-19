@@ -6,6 +6,7 @@ help:
 	@echo "ArtistMind Commands"
 	@echo "  make install         - 의존성 설치 (torch + transformers 포함)"
 	@echo "  make dev             - 개발 의존성 포함 설치"
+	@echo "  make install-training - 학습 의존성 설치 (datasets, trl, wandb)"
 	@echo "  make api             - FastAPI 서버 (port 8000, 모델 자동 로드)"
 	@echo "  make ui              - Gradio UI (port 7860)"
 	@echo "  make generate-data   - Claude API로 학습 데이터 생성"
@@ -18,6 +19,9 @@ install:
 
 dev:
 	uv sync --extra dev
+
+install-training:
+	uv sync --extra training
 
 api:
 	$(PYTHON) -m uvicorn api.main:app --host 0.0.0.0 --port 8000
